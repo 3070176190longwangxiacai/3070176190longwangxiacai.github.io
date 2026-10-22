@@ -21,15 +21,24 @@
     { src: '/music/04-xiao-bu-wu-qu.mp3',      title: '小步舞曲',              artist: '陈绮贞',           album: '精选 1998-2005' },
     { src: '/music/05-do-you-like-me.mp3',     title: 'Do You Like Me?',      artist: 'Daniel Caesar',    album: 'Do You Like Me? (Explicit)' },
     { src: '/music/06-no-more-sweet-music.mp3', title: 'No More Sweet Music',  artist: 'Hooverphonic',     album: 'No More Sweet Music' },
-    { src: '/music/07-color-your-night.mp3',   title: 'Color Your Night',     artist: 'Atlus Sound Team', album: 'P3 Reload OST',
-      cover: '/music/covers/07-color-your-night.jpg' }
+    { src: '/music/07-color-your-night.mp3',   title: 'Color Your Night',     artist: 'Atlus Sound Team', album: 'P3 Reload OST' }
   ];
+
+  /* 封面按约定自动找：/music/covers/ + 音频同名 + .jpg
+     比如 01-bu-ying-gai.mp3 → /music/covers/01-bu-ying-gai.jpg
+     放到目录里就生效，找不到就退回「歌手首字色块」，不用改代码。 */
+  function coverOf(t) {
+    if (t.cover) return t.cover;
+    var base = t.src.split('/').pop().replace(/\.mp3$/i, '');
+    return '/music/covers/' + base + '.jpg';
+  }
 
   var AUDIO_ID = 'mp-audio';
   var CARD_ID = 'aside-music';
 
   var audioEl = null;
   var card = null;
+  var coverOk = {};   // 只把确认加载成功的封面交给系统媒体面板，避免通知里出现破图
 
   /* ---------------- 音频内核（挂在 body，随页面存活） ---------------- */
 
@@ -253,17 +262,23 @@
     if (old) old.parentNode.removeChild(old);
 
     var ini = coverBtn.querySelector('.mp-initial');
-    if (t.cover) {
+    ini.textContent = initialOf(t);
+    ini.style.display = '';           // 先亮首字兜底，封面加载成功再收起，避免白块
+
+    var img = document.createElement('img');
+    img.alt = '';
+    img.loading = 'lazy';
+    img.addEventListener('load', function () {
       ini.style.display = 'none';
-      var img = document.createElement('img');
-      img.src = t.cover;
-      img.alt = '';
-      img.loading = 'lazy';
-      coverBtn.insertBefore(img, ini);
-    } else {
+      coverOk[coverOf(t)] = true;
+      updateMediaSession();
+    });
+    img.addEventListener('error', function () {
+      if (img.parentNode) img.parentNode.removeChild(img);
       ini.style.display = '';
-      ini.textContent = initialOf(t);
-    }
+    });
+    img.src = coverOf(t);
+    coverBtn.insertBefore(img, ini);
 
     var items = card.querySelectorAll('.mp-item');
     for (var i = 0; i < items.length; i++) {
@@ -328,12 +343,13 @@
   function updateMediaSession() {
     if (!('mediaSession' in navigator) || typeof window.MediaMetadata !== 'function') return;
     var t = TRACKS[curIndex()];
+    var art = coverOf(t);
     try {
       navigator.mediaSession.metadata = new window.MediaMetadata({
         title: t.title,
         artist: t.artist,
         album: t.album || '',
-        artwork: t.cover ? [{ src: t.cover, sizes: '500x500', type: 'image/jpeg' }] : []
+        artwork: coverOk[art] ? [{ src: art, sizes: '500x500', type: 'image/jpeg' }] : []
       });
       navigator.mediaSession.setActionHandler('play', play);
       navigator.mediaSession.setActionHandler('pause', pause);
