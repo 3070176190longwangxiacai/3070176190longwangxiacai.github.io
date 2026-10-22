@@ -1,0 +1,270 @@
+/* ============================================================
+   侧栏音乐盒 · 2026-10-22
+   配合 /js/music-player.js：卡片 UI 在侧栏（头像卡与日历卡之间），
+   <audio> 内核挂在 body 上，所以 pjax 换页只重建 UI，音乐不断。
+   卡片底色/模糊由 card-glass.css 的 #aside-content .card-widget 统一接管。
+   ============================================================ */
+
+/* 头部沿用主题的 .item-headline，这里只补卡片内边距。
+   选择器必须带 #aside-content，否则被 custom.css 的 #aside-content .card-widget{padding:20px} 压住 */
+#aside-content .card-music {
+  padding: 18px 18px 14px;
+}
+
+/* 主题的 .item-headline 是行内流，加个 flex 才能把「播放列表」按钮推到最右 */
+#aside-content .card-music .item-headline {
+  display: flex;
+  align-items: center;
+}
+
+#aside-content .card-music .item-headline span {
+  margin-left: 6px;
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mp-now {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 封面：有点击播放，播放在跑时叠一层均衡器动画 */
+.mp-cover {
+  position: relative;
+  flex: 0 0 auto;
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--theme-color), #8b7bd8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .12);
+}
+
+.mp-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* 没有封面时用歌手首字兜底，不显示破图 */
+.mp-cover .mp-initial {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 1px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .25);
+}
+
+/* 播放中的均衡器：三根跳动的小竖条 */
+.mp-eq {
+  position: absolute;
+  inset: 0;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 3px;
+  padding-bottom: 13px;
+  background: rgba(0, 0, 0, .42);
+}
+
+.card-music.is-playing .mp-eq {
+  display: flex;
+}
+
+.mp-eq i {
+  width: 3px;
+  height: 6px;
+  border-radius: 2px;
+  background: #fff;
+  animation: mp-eq-bounce .9s ease-in-out infinite;
+}
+
+.mp-eq i:nth-child(2) { animation-delay: .18s; }
+.mp-eq i:nth-child(3) { animation-delay: .36s; }
+
+@keyframes mp-eq-bounce {
+  0%, 100% { height: 5px; opacity: .75; }
+  50%      { height: 17px; opacity: 1; }
+}
+
+.mp-meta {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.mp-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mp-artist {
+  margin-top: 2px;
+  font-size: 11.5px;
+  line-height: 1.4;
+  opacity: .62;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 进度条：点击可跳转 */
+.mp-bar {
+  position: relative;
+  height: 4px;
+  margin: 13px 0 6px;
+  border-radius: 3px;
+  background: rgba(127, 127, 127, .22);
+  cursor: pointer;
+}
+
+.mp-bar-fill {
+  width: 0;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--theme-color);
+  transition: width .18s linear;
+}
+
+.mp-times {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  opacity: .55;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-ctrl {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 10px;
+}
+
+.mp-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--font-color);
+  cursor: pointer;
+  opacity: .78;
+  transition: opacity .2s, transform .2s, color .2s;
+}
+
+.mp-btn:hover {
+  opacity: 1;
+  color: var(--theme-color);
+}
+
+.mp-btn svg { display: block; }
+
+.mp-play {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--theme-color);
+  color: #fff;
+  opacity: 1;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, .16);
+}
+
+.mp-play:hover {
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.mp-play.is-loading {
+  animation: mp-pulse 1s ease-in-out infinite;
+}
+
+@keyframes mp-pulse {
+  50% { transform: scale(.92); opacity: .7; }
+}
+
+/* 播放列表：默认收起，点右上角按钮展开 */
+.mp-list {
+  max-height: 0;
+  margin: 0;
+  padding: 0 2px;
+  overflow: hidden;
+  list-style: none;
+  transition: max-height .32s ease, margin-top .32s ease;
+}
+
+.card-music.is-open .mp-list {
+  max-height: 240px;
+  margin-top: 10px;
+  overflow-y: auto;
+}
+
+.mp-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 6px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: background .2s;
+}
+
+.mp-item:hover {
+  background: rgba(127, 127, 127, .12);
+}
+
+.mp-item.is-on {
+  color: var(--theme-color);
+  font-weight: 700;
+}
+
+.mp-idx {
+  flex: 0 0 16px;
+  text-align: center;
+  font-size: 11px;
+  opacity: .5;
+  font-variant-numeric: tabular-nums;
+}
+
+.mp-item-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mp-item-artist {
+  flex: 0 0 auto;
+  max-width: 40%;
+  font-size: 11px;
+  opacity: .5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-eq i { animation: none; height: 12px; }
+  .mp-bar-fill,
+  .mp-list { transition: none; }
+}
