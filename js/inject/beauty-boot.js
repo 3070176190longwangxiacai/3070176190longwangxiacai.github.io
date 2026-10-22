@@ -29,18 +29,26 @@
     tag("defineBg", ":root{--default-bg:" + bg + SAME + bg + ";--mobileday-bg:" + bg + ";--mobilenight-bg:" + bg + ";}");
   }
   // 2) 卡片透明度
-  tag("transPercent", ":root{--trans-light: rgba(250, 250, 250, " + def(ls("transNum"), "98") + "%) !important; --trans-dark: rgba(28, 28, 28, " + def(ls("transNum"), "98") + "%) !important} ");
+  tag("transPercent", ":root{--trans-light: rgba(250, 250, 250, " + def(ls("transNum"), "62") + "%) !important; --trans-dark: rgba(28, 28, 28, " + def(ls("transNum"), "62") + "%) !important} ");
   // 3) 背景滤镜
   if (def(ls("bgFilterOn"), "1") === "0") { tag("bgFilterParam", ":root{--bg-filter:none;}"); }
   else { var bfv = ls("bgFilterVal"); if (bfv) { tag("bgFilterParam", ":root{--bg-filter:" + bfv + ";}"); } }
   // 4) 主题色
   var cmap = { red: "rgb(239, 90, 90)", orange: "rgb(215, 146, 77)", yellow: "rgb(196, 166, 74)", green: "rgb(57, 197, 187)", puregreen: "rgb(77, 175, 135)", blue: "rgb(74, 156, 199)", heoblue: "rgb(97, 106, 209)", matcha: "rgb(102, 179, 77)", darkblue: "rgb(113, 133, 156)", purepurple: "rgb(147, 90, 205)", pink: "rgb(237, 112, 155)" };
-  var tc = def(ls("themeColor"), "green");
+  // 2026-10-22：默认主题色由「青绿 green」改为「蜂蜜金 yellow」。
+  // 老访客 localStorage 里存的还是旧默认值 green（settings.js 每次加载都会把它写回去），
+  // 所以这里做一次性迁移：仅当「值仍是 green」且「没迁移过」时改写；之后访客主动选回 green 不会被覆盖。
+  // 放在首帧脚本里执行，避免先闪一下青绿再变黄。
+  if (ls("themeColor") === "green" && ls("themeColorDft") !== "yellow") {
+    localStorage.setItem("themeColor", "yellow");
+    localStorage.setItem("themeColorDft", "yellow");
+  }
+  var tc = def(ls("themeColor"), "yellow");
   if (tc === "purple") tc = "purepurple";
   else if (tc === "gray" || tc === "black") tc = "darkblue";
   var custom = ls("themeCustomColor");
   var color = tc === "custom" && /^#[0-9a-f]{6}$/i.test(custom || "") ? custom :
-    (Object.prototype.hasOwnProperty.call(cmap, tc) ? cmap[tc] : cmap.green);
+    (Object.prototype.hasOwnProperty.call(cmap, tc) ? cmap[tc] : cmap.yellow);
   tag("themeColor", ":root{--theme-color:" + color + " !important}");
   // 4b) 主题色实底上的前景色（首帧就得有，否则浅色预设会先闪一下白字；算法与 settings.js 一致）
   var lin = function (v) { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };

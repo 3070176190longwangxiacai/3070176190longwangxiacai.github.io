@@ -182,7 +182,9 @@ if (document.body.clientWidth > 992) {
     $.fn.nekoScroll = function (option) {
       var setting = $.extend({ top: '0', scroWidth: '6px', z_index: 9999, zoom: 0.9,
         borderRadius: '5px', right: '55.6px',
-        nekoImg: 'https://bu.dusays.com/2022/07/20/62d812db74be9.png' }, option);
+        // 2026-10-22：挂件形象换成站主提供的黄团子（原 https://bu.dusays.com/2022/07/20/62d812db74be9.png 小猫）。
+        // /img/neko-mascot.png 是从 641×1273 的原图裁边 + 预乘 alpha 缩放到 150×300 的真透明 PNG（无白边）。
+        nekoImg: '/img/neko-mascot.png' }, option);
       if (!this.length) return this;
       var cat = nekoElement();
       if (!cat) {
@@ -612,7 +614,7 @@ class Cursor {
     if (this.layer.style.display !== display) this.layer.style.display = display;
     // 原地改样式，不移除；任何时候都不能露出文字区域的系统 I 形光标。
     if (!this.scr.isConnected) document.body.appendChild(this.scr);
-    const color = map.get(normalizeThemePreset(localStorage.getItem('themeColor'))) || map.get('green');
+    const color = map.get(normalizeThemePreset(localStorage.getItem('themeColor'))) || map.get('yellow');
     if (this.color !== color) {
       const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8" width="8px" height="8px"><circle cx="4" cy="4" r="4" fill="' + color + '"/></svg>';
       this.scr.textContent = '* {cursor: url("data:image/svg+xml,' + encodeURIComponent(svg) + '") 4 4, auto}';

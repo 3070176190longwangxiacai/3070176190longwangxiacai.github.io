@@ -1037,3 +1037,50 @@ html[data-theme="dark"] #fps {
     flex-wrap: nowrap;
   }
 }
+
+/* ⑩ 头像名片背景（2026-10-22）
+   主题原本给浅色/深色各配了一张 picsum 随机图（custom.css:1385/1391），
+   这里用一条规则同时压掉两张，换成站主提供的黄团子插画。
+   卡内 ::before 那层「上透下磨砂」的遮罩仍在（custom.css:3703），所以文字区依旧清晰。 */
+html[data-theme] #aside-content > .card-widget.card-info {
+  background-image: url('/assets/card-info-bg.jpg') !important;
+  background-repeat: no-repeat !important;
+  background-attachment: scroll !important;
+  background-size: cover !important;
+  background-position: center 30% !important;
+}
+
+/* ⑪ 加载页图标（2026-10-22）
+   preloader.load_style 由 heo 改成 image，模板只输出一个裸 <img class="load-image">，
+   主题样式没给它任何尺寸（见 _load_style/image.styl:39 只有 position/display），
+   491×481 会铺成一大块，所以这里显式缩到徽记大小并居中。 */
+#loading-box .load-image {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  width: 132px;
+  height: 132px;
+  border-radius: 24px;
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, .08), 0 18px 44px rgba(0, 0, 0, .45);
+  transform: translate(-50%, -50%);
+  animation: load-breathe 1.8s ease-in-out infinite;
+}
+
+@keyframes load-breathe {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.055); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #loading-box .load-image { animation: none; }
+}
+
+/* ⑫ 互动挂件换形象（2026-10-22）
+   新图是 1:2 的全身立绘，沿用 64×64 会被 contain 压成 32×64 细条，
+   所以把容器改成 60×120，并让脚底贴住原来的位置。 */
+.neko {
+  width: 60px;
+  height: 120px;
+  background-size: contain;
+  background-position: center bottom;
+}

@@ -115,10 +115,10 @@ function initItem() {
   localStorage.setItem("blogbg", "default");
   localStorage.setItem("universe", "block");
   localStorage.setItem("fpson", "1");
-  localStorage.setItem("transNum", "98");
+  localStorage.setItem("transNum", TRANS_DEFAULT); // 与 TRANS_DEFAULT(62) 保持一致；原写死 98 会让「恢复默认」把毛玻璃重置成不透明
   localStorage.setItem("font", FONT_DEFAULT);
   localStorage.setItem("codeFont", CODE_FONT_DEFAULT);
-  localStorage.setItem("themeColor", "green");
+  localStorage.setItem("themeColor", "yellow"); // 2026-10-22 默认主题色改蜂蜜金（原 green）
   localStorage.setItem("themeCustomColor", "#c74bd0"); // 自定义主题色的默认值：故意不落在 11 个预设里（#c74bd0 ≈ 305°，夹在紫罗兰 270° 与樱花粉 339° 之间），这样彩虹环内点一眼能认出"这是自定义"
   localStorage.setItem("rs", "block");
   localStorage.setItem("mouse", "on");
@@ -239,7 +239,7 @@ function setColor(c) {
   c = normalizeThemePreset(c);
   var hex = localStorage.getItem('themeCustomColor');
   if (c === 'custom' && validThemeHex(hex)) map.set('custom', themeHexToRGB(hex));
-  else if (!themeColorPresets.some(function(p) { return p[0] === c; })) c = 'green';
+  else if (!themeColorPresets.some(function(p) { return p[0] === c; })) c = 'yellow';
   var theme_color = map.get(c);
   document.getElementById('themeColor').innerText = ':root{--theme-color:' + theme_color + ' !important}';
   // 实底前景色跟着主题色走：写内联样式（优先级最高），CSS 里只留 #fff 兜底。
@@ -1122,7 +1122,7 @@ function reset() {
 
   setFont(FONT_DEFAULT);
   setCodeFont(CODE_FONT_DEFAULT);
-  setColor("green");
+  setColor("yellow");
   document.getElementById("universe").style.display = "block";
   document.getElementById("snow").style.display = "none";
   if (window.FOMAL_SNOW) window.FOMAL_SNOW.reset();
