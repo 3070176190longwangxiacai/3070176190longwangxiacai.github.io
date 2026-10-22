@@ -27,9 +27,12 @@ function createtime() {
   var dis = vgFmt(vgd);                  // 千分位格式
   var unit = (vgd / vgAU).toFixed(6);    // 天文单位（1 AU = 149597870.7 km）
   var lt = vgLight(vgd);                 // 信号单程光行时
-  // 网站诞生时间
-  var grt = new Date("08/09/2022 00:00:00");
-  // 年按“满周年”算：2022-08-09 → 2026-08-09 记 4 年，周年之后再数剩余的天/时/分/秒
+  // 网站诞生时间（「本站居然运行了」的计时起点）
+  // 2026-10-22 按用户要求归零重算，从此刻开始累计。
+  // 想再重置一次，只改这一行即可；用带时区的 ISO 写法（+08:00 = 北京时间），
+  // 别用 "08/09/2022 00:00:00" 那种，MM/DD 与 DD/MM 在不同浏览器下解析结果不一样。
+  var grt = new Date("2026-10-22T18:28:00+08:00");
+  // 年按“满周年”算：2026-10-22 → 2027-10-22 记 1 年，周年之后再数剩余的天/时/分/秒
   var years = now.getFullYear() - grt.getFullYear(),
     anniv = new Date(grt.getTime());
   anniv.setFullYear(grt.getFullYear() + years);
