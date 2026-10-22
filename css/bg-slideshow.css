@@ -1,0 +1,87 @@
+/* ============================================================
+   站点背景轮播 · 2026-10-22
+   九张插画全屏循环淡入淡出，独立文件，不改主题源码。
+   配套脚本：/js/bg-slideshow.js
+   调整入口：下面 :root 里两个变量
+   ============================================================ */
+
+:root {
+  --bgs-fade: 1400ms;   /* 单次交叉淡入淡出时长 */
+  --bgs-scrim: .14;     /* 压暗蒙版强度 0~1：越大图越暗、字越清楚 */
+}
+
+/* 主题自带的常驻壁纸让位给轮播层（保留 DOM，只是不显示） */
+#web_bg {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+/* 首屏兜底：CSS 一解析就挂上第一张，避免白闪或主题默认壁纸闪一下。
+   JS 接管后加 body.bgs-live，这层淡出，与第 1 张同图，肉眼无感。 */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1000;
+  background: #0d0d10 url(/img/bg/bg-01.jpg) center / cover no-repeat;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity .9s ease;
+}
+body.bgs-live::before {
+  opacity: 0;
+}
+
+/* 轮播容器：与 #web_bg 同一层级，盖在兜底层之上、所有内容之下 */
+#bg-slideshow {
+  position: fixed;
+  inset: 0;
+  z-index: -999;
+  overflow: hidden;
+  pointer-events: none;
+  background-color: #0d0d10;
+}
+
+#bg-slideshow .bgs-slide {
+  position: absolute;
+  inset: 0;
+  background-position: center center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  opacity: 0;
+  transition: opacity var(--bgs-fade) ease-in-out;
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+#bg-slideshow .bgs-slide.is-on {
+  opacity: 1;
+}
+
+/* 轻微压暗：插画本身很花，卡片/标题压在上面时靠这层拉开对比 */
+#bg-slideshow::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, calc(var(--bgs-scrim) + 0.10)) 0%,
+    rgba(0, 0, 0, var(--bgs-scrim)) 45%,
+    rgba(0, 0, 0, calc(var(--bgs-scrim) + 0.12)) 100%
+  );
+}
+
+@media (max-width: 768px) {
+  :root {
+    --bgs-fade: 900ms;
+    --bgs-scrim: .10;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #bg-slideshow .bgs-slide,
+  body::before {
+    transition: none;
+  }
+}
