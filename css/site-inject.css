@@ -1050,25 +1050,67 @@ html[data-theme] #aside-content > .card-widget.card-info {
   background-position: center 30% !important;
 }
 
-/* ⑪ 加载页图标（2026-10-22）
-   preloader.load_style 由 heo 改成 image，模板只输出一个裸 <img class="load-image">，
-   主题样式没给它任何尺寸（见 _load_style/image.styl:39 只有 position/display），
-   491×481 会铺成一大块，所以这里显式缩到徽记大小并居中。 */
+/* ⑪ 加载页图标与遮罩（2026-10-22，同日深夜修正）
+
+   【为什么之前「加载完了图片还在」】
+   themes/fomalhaut/source/css/_layout/loading.styl 里那句
+       @import './_load_style/image'
+   是相对 _layout/ 解析的，会去找 css/_layout/_load_style/image.styl，
+   而真正的文件在 css/_load_style/image.styl。把路径改对之后实测仍未进入产物
+   （hexo-renderer-stylus 对这个条件式 @import 没有生效），所以 #loading-box 与
+   .load-image 在 index.css 里一条规则都没有 —— 包括 image.styl:44 那条
+       #loading-box.loaded .load-image { display: none }
+   图片只被下面这段自定样式撑出了尺寸，于是从加载到关闭一直浮在页面中间
+   （用户 2026-10-22 反馈的现象）。
+   结论：遮罩与隐藏逻辑全部由本文件接管，不再依赖主题的 _load_style。 */
+
+#loading-box {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--preloader-bg, #0d0d10);
+  transition: opacity .45s ease;
+}
+
 #loading-box .load-image {
   position: fixed;
   top: 50%;
   left: 50%;
   width: 132px;
   height: 132px;
+  z-index: 1001;
   border-radius: 24px;
   box-shadow: 0 0 0 6px rgba(255, 255, 255, .08), 0 18px 44px rgba(0, 0, 0, .45);
   transform: translate(-50%, -50%);
   animation: load-breathe 1.8s ease-in-out infinite;
+  transition: opacity .45s ease;
 }
 
 @keyframes load-breathe {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
   50%      { transform: translate(-50%, -50%) scale(1.055); }
+}
+
+/* 兜底：无论上游的 &.loaded 规则在不在，加载完成都必须彻底消失 */
+#loading-box.loaded {
+  opacity: 0;
+  pointer-events: none;
+}
+
+#loading-box.loaded .load-image {
+  display: flex;   /* 压掉主题的 display:none，让图片跟遮罩一起淡出而不是硬切 */
+  opacity: 0;
+}
+
+/* 首屏关掉之后，pjax 换页也不再重放遮罩（与 loading-js.pug 的 data-preloaded 呼应） */
+html[data-preloaded="1"] #loading-box {
+  display: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
