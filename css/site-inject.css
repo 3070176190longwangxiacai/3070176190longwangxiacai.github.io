@@ -1017,3 +1017,23 @@ html[data-theme="dark"] #fps {
   .dm-stage .dm-glow { height: 22%; }
 }
 @media (prefers-reduced-motion: reduce) { .dm-stage { display: none !important; } }
+
+/* ⑨ 页脚精简（2026-10-22）：
+   删掉「猜你想看」（.t-t-r）与「推荐友链⌛」（.ft-item-2）后，页脚只剩「格言」一块。
+   此时它不再是并排两栏中的一栏，flex 会让它自然撑满，但 .bg-ad 仍固定 85% 会在右侧留白，
+   所以这里把格言区放宽到整行，并把原 1.4:1 的比例复位。 */
+#footer #ft .t-top .t-t-l {
+  flex: 1 1 100%;
+  margin-right: 0;
+}
+
+#footer #ft .t-top .t-t-l .bg-ad {
+  width: 100%;
+}
+
+/* 手机端：原来 576px 以下给 .t-t-r 让出的位子不需要了，格言独占整行 */
+@media screen and (max-width: 576px) {
+  #footer #ft .t-top {
+    flex-wrap: nowrap;
+  }
+}
