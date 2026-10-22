@@ -523,11 +523,21 @@ function setAsidePos() {
 
 
 // 透明度调节滑块
+// 卡片默认不透明度：2026-10-22 毛玻璃效果，98 → 62。
+// 98% 时卡片基本是不透明白，背后的背景图再怎么模糊也看不出来；62% 才真正「透」。
+// 想更实就调大、更透就调小；runtime 也能在右下角齿轮 →「卡片透明度」里拖。
+var TRANS_DEFAULT = 62;
+// 迁移：浏览器里已经存着旧默认值 98 的（当年首次加载时被自动写入的），
+// 视为「从没手动调过」，平滑切到新默认；存了其它数值的（真调过的）不动。
+if (localStorage.getItem("transNum") === "98" && localStorage.getItem("transNum_v2") !== "1") {
+  localStorage.setItem("transNum", TRANS_DEFAULT);
+  localStorage.setItem("transNum_v2", "1");
+}
 if (localStorage.getItem("transNum") == undefined) {
-  localStorage.setItem("transNum", 98);
+  localStorage.setItem("transNum", TRANS_DEFAULT);
 }
 var curTransNum = Number(localStorage.getItem("transNum"));
-if (!Number.isFinite(curTransNum) || curTransNum < 0 || curTransNum > 100) curTransNum = 98;
+if (!Number.isFinite(curTransNum) || curTransNum < 0 || curTransNum > 100) curTransNum = TRANS_DEFAULT;
 var curTransMini = curTransNum;
 var transFrame = 0;
 function applyTrans() {
@@ -559,12 +569,13 @@ function setTrans(input, commit) {
   } else if (!transFrame) transFrame = requestAnimationFrame(applyTrans);
 }
 function resetTrans() {
-  curTransNum = 98; curTransMini = 98;
-  localStorage.setItem('transNum',98);
+  curTransNum = TRANS_DEFAULT; curTransMini = TRANS_DEFAULT;
+  localStorage.setItem('transNum', TRANS_DEFAULT);
+  localStorage.setItem('transNum_v2', '1');
   if (transFrame) cancelAnimationFrame(transFrame);
   applyTrans(); syncTransControls();
   var status = document.getElementById('transStatus');
-  if (status) status.textContent = '已恢复默认 98%，其他设置不变';
+  if (status) status.textContent = '已恢复默认 ' + TRANS_DEFAULT + '%，其他设置不变';
 }
 applyTrans();
 
@@ -977,7 +988,7 @@ function createWinbox() {
   <p class="bf-hint" id="transStatus" role="status">实时预览，结束调整后自动保存 · 只改变卡片底色，不影响文字</p>
   <input class="bf-slider" id="transSet" type="range" min="0" max="100" step="1" aria-label="卡片不透明度" aria-describedby="transLimits" oninput="setTrans(this,false)" onchange="setTrans(this,true)">
   <div class="bf-limits" id="transLimits"><span>0% · 完全透明</span><span>100% · 不透明</span></div>
-  <div class="bf-footer"><button type="button" onclick="resetTrans()">恢复默认 98%</button></div>
+  <div class="bf-footer"><button type="button" onclick="resetTrans()">恢复默认</button></div>
 </section>
 
 
@@ -1127,8 +1138,10 @@ function reset() {
   document.getElementById("fps").style.display = "block";
   startFps(); // 恢复默认也恢复被真正停止的采样循环。
 
-  curTransNum = 98;
+  curTransNum = TRANS_DEFAULT;
   curTransMini = curTransNum;
+  localStorage.setItem('transNum', TRANS_DEFAULT);
+  localStorage.setItem('transNum_v2', '1');
   document.getElementById("transPercent").innerText = `:root{--trans-light: rgba(250, 250, 250, ${curTransNum}%) !important; --trans-dark: rgba(28, 28, 28, ${curTransNum}%) !important} `;
 
 

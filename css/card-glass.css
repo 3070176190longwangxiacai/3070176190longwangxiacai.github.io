@@ -1,0 +1,62 @@
+/* ============================================================
+   卡片毛玻璃 · 2026-10-22
+   ------------------------------------------------------------
+   本主题的卡片底色本来就走 CSS 变量（--trans-light / --trans-dark，
+   由右下角齿轮里「卡片透明度」滑块控制），默认 98%，几乎等于不透明白，
+   所以单加模糊是看不出来的。这里做两件事：
+     1) 卡片补上 backdrop-filter 模糊层（本文件）
+     2) 默认不透明度 98 → 62（settings.js 顶部的 TRANS_DEFAULT）
+   想更实一点就把滑块往右拖，想更透就往左拖，随时可调。
+   ------------------------------------------------------------
+   为什么不去改主题的 custom.css：那 5 条卡片规则在主题目录里，
+   升级主题会被覆盖；这里用同选择器后置覆盖，主题更新也不受影响。
+   ============================================================ */
+
+:root {
+  --glass-blur: 16px;      /* 模糊半径：12px 清爽 / 16px 适中 / 24px 朦胧 */
+  --glass-saturate: 150%;  /* 饱和：让背后的插画透出但不过分发灰 */
+}
+
+/* 五类卡片：首页文章卡、侧栏小卡、文章页、独立页、归档页 */
+#recent-posts > .recent-post-item,
+#aside-content .card-widget,
+div#post,
+div#page,
+div#archive {
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+  /* 边框保持主题原来的 1px 灰线，不额外加白边/内高光 —— 那样盒子感会变重 */
+  background-clip: padding-box;
+}
+
+/* 卡片里的图片、代码块不该被磨砂影响，保持清晰 */
+#recent-posts > .recent-post-item .recent-post-cover img,
+div#post img {
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+@media (max-width: 768px) {
+  :root {
+    --glass-blur: 10px; /* 手机上降低模糊半径，滚动更跟手 */
+  }
+}
+
+/* 老浏览器不支持模糊时，退回接近不透明的底色，优先保证文字可读 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :root {
+    --trans-light: rgba(250, 250, 250, 0.93) !important;
+    --trans-dark: rgba(28, 28, 28, 0.93) !important;
+  }
+}
+
+/* 系统开启「减少动态效果」时不额外做过渡 */
+@media (prefers-reduced-motion: reduce) {
+  #recent-posts > .recent-post-item,
+  #aside-content .card-widget,
+  div#post,
+  div#page,
+  div#archive {
+    transition: none;
+  }
+}
